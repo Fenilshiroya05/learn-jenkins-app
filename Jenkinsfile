@@ -4,6 +4,7 @@ pipeline {
     environment{
         NETLIFY_SITE_ID='011e64f7-0bd2-4422-adb2-555aa1f872f2'
         NETLIFY_AUTH_TOKEN= credentials('netlify-token')
+        CI_ENVIRONMENT_URL='https://keen-mooncake-95dc61.netlify.app/'
     }
     stages {
        
@@ -67,11 +68,11 @@ pipeline {
             }
         post {
             always {
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local', reportTitles: '', useWrapperFileDirectly: true])
         }
     }
         }
-            }
+    }
     }
 
     stage('Deploy') {
@@ -92,6 +93,31 @@ pipeline {
             }
         }
 
-        
+     stage('Prod E2E') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    reuseNode true
+                }
+            }
+
+            environment{
+                CI_ENVIRONMENT_URL='https://keen-mooncake-95dc61.netlify.app'
+            }
+
+            steps {
+                sh '''
+                    npm install serve
+                    node_modules/.bin/serve -s build &
+                    sleep 10
+                    npx playwright test --reporter=html
+                '''
+            }
+        post {
+            always {
+            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright E2E', reportTitles: '', useWrapperFileDirectly: true])
+        }
+    }
+        } 
     }
 }
