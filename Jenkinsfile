@@ -6,8 +6,7 @@ pipeline {
         NETLIFY_AUTH_TOKEN= credentials('netlify-token')
     }
     stages {
-        /*
-
+       
         stage('Build') {
             agent {
                 docker {
@@ -26,7 +25,6 @@ pipeline {
                 '''
             }
         }
-        */
 
         stage('Tests'){
             parallel{
